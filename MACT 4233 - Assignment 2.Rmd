@@ -1,0 +1,289 @@
+---
+title: "MACT 4233 - Assignment 2"
+author: "Omar Moustafa 900222400"
+output:
+  html_notebook: default
+  pdf_document: default
+---
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+
+Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Cmd+Shift+Enter*. 
+
+
+Question 1. Choose any data matrix X of dimension 5 × 3, then
+```{r}
+x = matrix(c(3.2, 4.5, 2.1, 5.6, 3.9, 5.1, 6.8, 3.3, 7.2, 4.5, 7.3, 5.9, 6.5, 8.1, 5.7), nrow = 5, ncol = 3, byrow = FALSE)
+print(x)
+```
+
+(a) Compute the Euclidean distance between every pair of X. Which pair of the rows
+are the most distant from each other?
+```{r}
+# Compute the Euclidean distances between rows of matrix 'x'
+d_rows = as.matrix(dist(x))
+print("Euclidean Distance Between Rows:")
+d_rows_rounded = round(d_rows, digits = 2)
+print(d_rows_rounded)
+```
+
+```{r}
+max_distance = max(d_rows)
+row_indices = which(d_rows == max_distance, arr.ind = TRUE)
+cat("The Two Most Distant Rows From Each Other Are:", row_indices[1, 1], "and", row_indices[1, 2])
+```
+
+
+(b) Compute the Euclidean distance between every columns of X. Which pair of the
+columns are the closest to each other?
+```{r}
+# Compute the Euclidean distances between columns of matrix 'x'
+d_cols = as.matrix(t(dist(x))) # Transpose matrix 'x' to compute the column-wise distances
+print("Euclidean Distance Between Columns:")
+d_cols_rounded = round(d_cols, digits = 2)
+print(d_cols_rounded)
+```
+
+
+```{r}
+min_distance = min(d_cols[d_cols > 0]) # Exclude zero distances so that it's the minimum distance between 2 different columns
+col_indices = which(d_cols == min_distance, arr.ind = TRUE)
+cat("The Two Closest Columns To Each Other Are:", col_indices[1, 1], "and", col_indices[1, 2])
+```
+
+
+(c) Repeat the above two parts using X after standardizing its columns
+```{r}
+s = sqrt(diag(var(x, use = "complete.obs")))
+z = scale(x, center = FALSE, scale = s)
+d = as.matrix(dist(z))
+rd = round(d, digits = 2)
+print("Euclidean Distance Between The Standardized Rows:")
+print(rd)
+```
+
+
+```{r}
+max_distance_standardized = max(rd)
+row_indices2 = which(rd == max_distance_standardized, arr.ind = TRUE)
+cat("The Two Most Distant Rows From Each Other Are:", row_indices2[1, 1], "and", row_indices2[1, 2])
+```
+
+
+```{r}
+d2 = as.matrix(dist(t(z))) # Transpose standardized matrix 'x' to compute the column-wise distances
+rd2 = round(d2, digits = 2)
+print("Euclidean Distance Between The Standardized Columns:")
+print(rd2)
+```
+
+
+```{r}
+min_distance_standardized = min(rd2[rd2 > 0]) # Exclude zero distances so that it's the minimum distance between 2 different columns
+col_indices2 = which(rd2 == min_distance_standardized, arr.ind = TRUE)
+cat("The Two Closest Columns To Each Other Are:", col_indices2[1, 1], "and", col_indices2[1, 2])
+```
+
+
+(d) Comment on the obtained results
+1. Before standardization, the two most distant rows were Row 4 and Row 3, which did not change after standardization as Row 4 and Row 3 remained the two most distant ones. This lack of change indicates that the relative differences between the rows stayed the same, but standardization had re-scaled the distances.
+
+2. Before standardization, the two closest rows were Row 5 and Row 1, but after standardization, this changed to where the two closest rows were Row 2 and Row 1. This particular change that the original scales of the columns influenced the raw distances, and after standardization, the relative similarity between columns shifted.
+
+3. Therefore, standardization removed the influence of scale differences between the columns. The row-wise rankings of distances remained quite similar, but the column-wise relationships ended up changing significantly after adjusting for variance. In the standardized matrix, column 3 was much farther from columns 1 and 2, indicating that it had much larger variance in the original data.
+
+
+
+
+Question 2. Consider any bivariate normal random vector X = (X1, X2)^T , that is X ∼ N2(μ, Σ), other than the standard bivariate normal random vector. For each of the following 4 cases, specify μ and Σ, then sketch the ellipse resulting from cutting the density function with a plane parallel to the space spanned by the axes. 
+```{r}
+if(!require("MASS")) install.packages("MASS")
+if(!require("ellipse")) install.packages("ellipse")
+library(MASS)
+library(ellipse)
+```
+
+
+(a) The two variables are independent with equal variances.
+```{r}
+# Defining the mean vector
+mu = c(0,0)
+
+# Define the covariance matrix (equal variances)
+Simga = matrix(c(1, 0, 
+                 0, 1), nrow = 2)
+
+# Generate a bivariate normal sample
+set.seed(123)
+my_x = mvrnorm(n = 500, mu = mu, Sigma = Simga)
+
+# Compute the mean and covariance of the sample
+sample_mean = colMeans(my_x)
+
+sample_cov = var(my_x)
+
+plot(my_x, main = "Two Independent Variables with Equal Variances", xlab = "X1", ylab = "X2")
+
+# Add an ellipse to the plot
+ellipse_data = ellipse(sample_cov, centre = sample_mean, level = 0.95)
+lines(ellipse_data, lwd = 2)
+```
+
+
+
+(b) The two variables are independent with unequal variances.
+```{r}
+# Defining the mean vector
+mu = c(0,0)
+
+# Defining the covariance matrix (unequal variances)
+Simga = matrix(c(2, 0, 
+                 0, 1), nrow = 2)
+
+# Generate a bivariate normal sample
+set.seed(123)
+my_x = mvrnorm(n = 500, mu = mu, Sigma = Simga)
+
+# Compute the mean and covariance of the sample
+sample_mean = colMeans(my_x)
+sample_cov = var(my_x)
+
+plot(my_x, main = "Two Independent Variables with Unequal Variances", xlab = "X1", ylab = "X2")
+
+# Add an ellipse to the plot
+ellipse_data = ellipse(sample_cov, centre = sample_mean, level = 0.95)
+lines(ellipse_data, lwd = 2)
+```
+
+
+(c) The two variables are positively correlated with equal variances.
+```{r}
+# Defining the mean vector
+mu = c(0, 0)
+
+# Defining the covariance matrix (positively correlated with equal variances)
+Sigma = matrix(c(1, 0.7, 
+                 0.7, 1), nrow = 2)
+
+# Generate a bivariate normal sample
+set.seed(123)
+my_x = mvrnorm(n = 500, mu = mu, Sigma = Sigma)
+
+# Compute the mean and covariance of the sample
+sample_mean = colMeans(my_x)
+sample_cov = var(my_x)
+
+plot(my_x, main = "Two Positively Correlated Variables with Equal Variances", xlab = "X1", ylab = "X2", pch = 19)
+
+# Add the ellipse to the plot
+ellipse_data = ellipse(sample_cov, centre = sample_mean, level = 0.95)
+lines(ellipse_data, lwd = 2)
+```
+
+
+
+(d) The two variables are negatively correlated with unequal variances.
+```{r}
+# Defining the mean vector
+mu = c(0, 0)
+
+# Defining the covariance matrix (negatively correlated with unequal variances)
+Sigma = matrix(c(4, -1, 
+                 -1, 1), nrow = 2)
+
+# Generate a bivariate normal sample
+set.seed(123)
+my_x = mvrnorm(n = 500, mu = mu, Sigma = Sigma)
+
+# Compute the mean and covariance of the sample
+sample_mean = colMeans(my_x)
+sample_cov = var(my_x)
+
+plot(my_x, main = "Two Negatively Correlated Variables with Unequal Variances", xlab = "X1", ylab = "X2", pch = 19)
+
+# Add the ellipse to the plot
+ellipse_data = ellipse(sample_cov, centre = sample_mean, level = 0.95)
+lines(ellipse_data, lwd = 2)
+```
+
+
+Question 3. For each of the 4 cases in Question 2, compute the length and the direction of each axes
+
+Case (a): Independent Variables with Equal Variances
+```{r}
+# Redefine the covariance matrix from Question 2a
+Sigma = matrix(c(1, 0, 
+                  0, 1), nrow = 2)
+
+# Eigen decomposition
+eig = eigen(Sigma)
+
+# Length of axes
+axis_lengths = 2 * sqrt(eig$values)
+cat("Lengths of axes:", axis_lengths, "\n")
+
+# Direction of axes (eigen-vectors)
+cat("Directions of axes:\n")
+print(eig$vectors)
+```
+
+
+Case (b): Independent Variables with Unequal Variances
+```{r}
+# Redfine the covariance matrix from Question 2b
+Sigma = matrix(c(2, 0, 
+                  0, 1), nrow = 2)
+
+# Eigen decomposition
+eig = eigen(Sigma)
+
+# Length of axes
+axis_lengths = 2 * sqrt(eig$values)
+cat("Lengths of axes:", axis_lengths, "\n")
+
+# Direction of axes (eigen-vectors)
+cat("Directions of axes:\n")
+print(eig$vectors)
+```
+
+
+Case (c): Positively Correlated Variables with Equal Variances
+```{r}
+# Redefine the covariance matrix from Question 2c
+Sigma = matrix(c(1, 0.7, 
+                  0.7, 1), nrow = 2)
+
+# Eigen decomposition
+eig = eigen(Sigma)
+
+# Length of axes
+axis_lengths = 2 * sqrt(eig$values)
+cat("Lengths of axes:", axis_lengths, "\n")
+
+# Direction of axes (eigen-vectors)
+cat("Directions of axes:\n")
+print(eig$vectors)
+```
+
+
+Case (d): Negatively Correlated Variables with Unequal Variances
+```{r}
+# Redfine the covariance matrix from Question 2d
+Sigma = matrix(c(4, -1, 
+                 -1, 1), nrow = 2)
+
+# Eigen decomposition
+eig = eigen(Sigma)
+
+# Length of axes
+axis_lengths = 2 * sqrt(eig$values)
+cat("Lengths of axes:", axis_lengths, "\n")
+
+# Direction of axes (eigen-vectors)
+cat("Directions of axes:\n")
+print(eig$vectors)
+```
+
+
+
+Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Cmd+Option+I*.

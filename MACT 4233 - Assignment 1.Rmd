@@ -1,0 +1,158 @@
+---
+title: "MACT 4233 - Assignment 1"
+author: "Omar Moustafa 900222400"
+output:
+  html_notebook: default
+  pdf_document: default
+---
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+
+
+```{r}
+getwd()
+```
+
+
+Question 1. 
+Read any data set (of your choice) that consists of at least 5 quantitative variables into R
+```{r}
+# Store the data set in an object and call it 'x'
+x = read.csv("updated_version.csv", header = TRUE)
+```
+
+
+(a) Print the first 5 rows of the data set using the R command
+```{r}
+print(head(x,5))
+```
+
+(b) Produce the scatter plot matrix of any five variables
+```{r}
+# Selecting the first five out of the six numeric variables in 'df'
+pairs(x[, c("age", "total_cholesterol", "ldl", "hdl", "systolic_bp")], 
+      main = "Scatter Plot Matrix of 5 Numeric Variables", pch = 16)
+```
+
+(c) Comments on the above graphical displays:
+1. There's a clear positive relationship between the variables "total_cholesterol" & "ldl" as the points seem to trend upwards, indicating that as total_cholesterol increases, ldl tends to do the same. This is consistent with the known physiological relationship which is that LDL is a main component of total cholesterol. 
+
+2. There's a clear negative relationship between the variables "ldl" & "hdl" as the points seem to trend downward, indicating that ldl increases, hdl tends to decreases. 
+
+3. It seems that the variable "hdl" has non-linear relationships with both "age" and "systolic_bp."
+
+4. There are a handful of data points in the variables "total_cholesterol" & "ldl" which could be classified as outliers would could, therefore, represent high-risk patients suffering from cholesterol levels that are either abnormally high or abnormally low.  
+
+
+(d) Standardize the variables in your data using z = scale(x), then construct the scatter plot matrix using the following command
+```{r}
+z = scale(x)
+pairs(z, pch = 19, main = "Scatter Plot Matrix")
+```
+
+(e) What are the differences between this plot and the previous one?
+1. One major difference is that in this plot, all variables were standardized using z = scale(x) which converts each variable to follow the criteria of the standard normal random variable, particularly to have a mean of 0 and standard deviation of 1. In the new plot, the axes are in standardized units (z-score values) instead of the original units like the previous plot. 
+
+2. Another key difference is that in this plot, correlations and outliers are easier to perceive and takeaway from it compared to the previous plot. This is because, the relationships existing in the new plot appear more centered around zero which helps clearly identify them. 
+
+
+(f) Compute the mean vector x_bar and the covariance matrix, S, and the correlation matrix, R, of these variables.
+```{r}
+# Compute the mean vector, 'x_bar' 
+x_bar = colMeans(x)
+print("Mean Vector X-Bar:")
+x_bar
+```
+
+```{r}
+# Compute the covariance matrix, 'S'
+S = cov(x)
+print("Covariance Matrix S:")
+S
+```
+
+
+```{r}
+# Compute the correlation matrix, 'R'
+R = cor(x)
+print("Correlation Matrix R:")
+R
+```
+
+
+(g) Verify the relationship between the covariance and correlation matrices, that is, how R is obtained from S and vice versa.
+```{r}
+if(!require("dplyr")) install.packages("dplyr")
+library(dplyr)
+```
+
+
+```{r}
+# Compute D, which is the diagonal matrix of standard deviations
+D = diag(S)^-0.5  # Extract diag and take sqrt
+D = diag(D)  # Create a diagonal matrix
+
+R1 = D %*% S %*% D  # Matrix Multiplication
+
+D_inverse = diag(S)^0.5  # Now take the positive sqrt
+D_inverse = diag(D_inverse)  # Create a diagonal matrix
+
+# Compute S from R
+S1 = D_inverse %*% R %*% D_inverse  # Transform correlation back to covariance
+
+near(R, R1)  # All are true now
+cat("\n") # Printing an empty line for legibility reasons
+near(S, S1)  # All are true now
+```
+
+
+Question 2. 
+Consider any univariate normal random variable X ∼ N(µ, σ), other than the standard normal random variable 
+(µ = 0 and σ = 1), then using R:
+
+(a) Plot the density function, f(x), over its appropriate range
+```{r}
+# Graph of Normal PDF
+m = 2 # mean
+s = 4 # sigma (standard deviation)
+x1 = 0
+plot(function(x1) dnorm(x1, m, s), m - 3 * s, m + 3 * s)
+```
+
+
+(b) Plot cumulative distribution function, F(x), over its appropriate range.
+```{r}
+# Graph of Normal CDF
+# x1, m, and s were already defined in part (a)
+plot(function(x1) pnorm(x1, m, s), m - 3 * s, m + 3 * s, xlab = "x1", ylab = "Cumulative Probability")
+```
+
+
+(c) Compute the height of the density function when x = µ - 1.5σ
+```{r}
+# Normal PDF
+# m and s were already defined in part (a)
+new_x = m - 1.5*s
+dnorm(new_x, m, s)
+```
+
+
+(d) Compute the probability that the random variable X is less than µ - 1.5σ
+```{r}
+# Normal CDF
+# new_x, m, and s were already defined in part (c)
+pnorm(new_x, mean = m, sd = s)
+```
+
+
+(e) Compute the value of x such that the Pr(X >= x) = 0.17
+```{r}
+# Quantiles of Normal
+# m and s were already defined in part (a)
+p = 0.17
+qnorm(1 - p, m, s) # 1-p is what will help us find Pr(X >= x) = 0.17
+```
+
+
+
+Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Cmd+Option+I*.
